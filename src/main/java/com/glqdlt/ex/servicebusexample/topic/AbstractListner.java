@@ -1,5 +1,7 @@
 package com.glqdlt.ex.servicebusexample.topic;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.*;
 import com.microsoft.azure.servicebus.management.ManagementClient;
 import com.microsoft.azure.servicebus.management.SubscriptionDescription;
@@ -9,15 +11,47 @@ import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 /**
  * @author glqdlt
  */
 public abstract class AbstractListner implements IMessageHandler {
+    @Autowired
+    private TopicClient topicClient;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+
+    public <V> V convertValue(byte[] data, Class<V> v) {
+        String json = new String(data);
+        try {
+            return getObjectMapper().readValue(data, v);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public byte[] convertJson(Object object) {
+        try {
+            return getObjectMapper().writeValueAsBytes(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public TopicClient getTopicClient() {
+        return topicClient;
+    }
+
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
     private SubscriptionClient subscriptionClient;
 
@@ -50,14 +84,29 @@ public abstract class AbstractListner implements IMessageHandler {
     @Override
     public CompletableFuture<Void> onMessageAsync(IMessage message) {
         return CompletableFuture.runAsync(() -> {
-            if (message.getReplyTo().equals(this.getAliasName())) {
-                job(message);
+            boolean isCalled = checkReplyTo(message.getReplyTo());
+            if (isCalled) {
+                if (message.getLabel().equals("rollback")) {
+                    rollback(message);
+                } else {
+                    job(message);
+                }
             }
             subscriptionClient.completeAsync(message.getLockToken());
         });
     }
 
+    private boolean checkReplyTo(String replyTo) {
+        if (replyTo == null || replyTo.equals("")) {
+            return false;
+        }
+        String[] rr = replyTo.split(",");
+        return Stream.of(rr).anyMatch(x -> x.equals(getAliasName()) || x.equals("all"));
+    }
+
     public abstract void job(IMessage message);
+
+    public abstract void rollback(IMessage iMessage);
 
     @Override
     public void notifyException(Throwable exception, ExceptionPhase phase) {
