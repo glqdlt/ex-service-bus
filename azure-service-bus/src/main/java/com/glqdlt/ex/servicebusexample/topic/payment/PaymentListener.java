@@ -1,6 +1,6 @@
 package com.glqdlt.ex.servicebusexample.topic.payment;
 
-import com.glqdlt.ex.servicebusexample.topic.AbstractListner;
+import com.glqdlt.ex.servicebusexample.topic.AbstractAzureBusListener;
 import com.glqdlt.ex.servicebusexample.topic.DefaultEvent;
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.Message;
@@ -15,7 +15,7 @@ import java.util.Collections;
  * @author glqdlt
  */
 @Component
-public class PaymentListener extends AbstractListner {
+public class PaymentListener extends AbstractAzureBusListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(PaymentListener.class);
 
     @Override

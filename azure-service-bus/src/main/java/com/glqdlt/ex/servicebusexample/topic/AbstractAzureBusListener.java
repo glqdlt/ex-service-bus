@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 /**
  * @author glqdlt
  */
-public abstract class AbstractListner implements IMessageHandler {
+public abstract class AbstractAzureBusListener implements AzureAdapter {
     @Autowired
     private TopicClient topicClient;
 
@@ -82,7 +82,7 @@ public abstract class AbstractListner implements IMessageHandler {
 
 
     @Override
-    public CompletableFuture<Void> onMessageAsync(IMessage message) {
+    public CompletableFuture<Void> onListen(IMessage message) {
         return CompletableFuture.runAsync(() -> {
             boolean isCalled = checkReplyTo(message.getReplyTo());
             if (isCalled) {
@@ -109,7 +109,8 @@ public abstract class AbstractListner implements IMessageHandler {
     public abstract void rollback(IMessage iMessage);
 
     @Override
-    public void notifyException(Throwable exception, ExceptionPhase phase) {
+    public void onError(AzureError e) {
+
 
     }
 }

@@ -1,6 +1,7 @@
 package com.glqdlt.ex.servicebusexample.topic.ship;
 
-import com.glqdlt.ex.servicebusexample.topic.AbstractListner;
+import com.glqdlt.ex.servicebusexample.topic.AbstractAzureBusListener;
+import com.glqdlt.ex.servicebusexample.topic.AzureError;
 import com.glqdlt.ex.servicebusexample.topic.DefaultEvent;
 import com.microsoft.azure.servicebus.ExceptionPhase;
 import com.microsoft.azure.servicebus.IMessage;
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author glqdlt
  */
 @Component
-public class ShipListener extends AbstractListner {
+public class ShipListener extends AbstractAzureBusListener {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ShipListener.class);
 
@@ -67,7 +68,8 @@ public class ShipListener extends AbstractListner {
     }
 
     @Override
-    public void notifyException(Throwable exception, ExceptionPhase phase) {
+    public void onError(AzureError e) {
+        Throwable exception = e.getThrowable();
         LOGGER.error(exception.getMessage(), exception);
         if (exception instanceof ShipFailException) {
             DefaultEvent aa = ((ShipFailException) exception).getEventId();
