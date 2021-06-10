@@ -7,6 +7,9 @@
         <module>azure-service-bus</module>
         <module>api</module>
         <module>rabbit-mq</module>
+        <module>springevent</module>
+        <module>springreactor</module>
+        <module>sprinbweb</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -23,10 +26,6 @@
         <java.version>1.8</java.version>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
